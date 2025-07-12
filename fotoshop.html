@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Flag Builder</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #FF0000;
+            --secondary-color: #FFFFFF;
+            --tertiary-color: #0000FF;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .builder-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .flag-preview-container {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .flag-preview {
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 16/9;
+            position: relative;
+            border: 1px solid #ddd;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            background-size: cover;
+            overflow: hidden;
+        }
+
+        .controls {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .control-group h3 {
+            margin-bottom: 15px;
+            color: #444;
+            font-size: 18px;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border-color: #333;
+            box-shadow: 0 0 0 2px white, 0 0 0 4px #333;
+        }
+
+        .pattern-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .pattern-option {
+            aspect-ratio: 2/1;
+            background-color: #eee;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            overflow: hidden;
+        }
+
+        .pattern-option:hover {
+            border-color: #ccc;
+        }
+
+        .pattern-option.selected {
+            border-color: #333;
+            box-shadow: 0 0 0 2px white, 0 0 0 4px #333;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+        }
+
+        button {
+            font-style: italic;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .symbol-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .symbol-option {
+            width: 50px;
+            height: 50px;
+            background-color: #eee;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 2px solid transparent;
+        }
+
+        .symbol-option:hover {
+            background-color: #ddd;
+        }
+
+        .symbol-option.selected {
+            border-color: #333;
+            background-color: #fff;
+        }
+
+        @media (max-width: 768px) {
+            .builder-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><em>Custom Flag Builder</em></h1>
+        
+        <div class="builder-container">
+            <div class="flag-preview-container">
+                <div class="flag-preview" id="flagCanvas"></div>
+                <button id="downloadBtn"><em>Download Flag as PNG</em></button>
+            </div>
+            
+            <div class="controls">
+                <div class="control-group">
+                    <h3><em>Flag Layout</em></h3>
+                    <select id="layoutSelect">
+                        <option value="horizontal">Horizontal Stripes</option>
+                        <option value="vertical">Vertical Stripes</option>
+                        <option value="diagonal">Diagonal</option>
+                        <option value="quarter">Quartered</option>
+                        <option value="circle">Central Circle</option>
+                        <option value="triangle">Triangle (Like Nepal)</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Colors</h3>
+                    <div class="color-picker">
+                        <div class="color-option selected" style="background-color: #FF0000;" data-color="#FF0000"></div>
+                        <div class="color-option" style="background-color: #FFFFFF;" data-color="#FFFFFF"></div>
+                        <div class="color-option" style="background-color: #0000FF;" data-color="#0000FF"></div>
+                        <div class="color-option" style="background-color: #008000;" data-color="#008000"></div>
+                        <div class="color-option" style="background-color: #FFD700;" data-color="#FFD700"></div>
+                        <div class="color-option" style="background-color: #000000;" data-color="#000000"></div>
+                        <div class="color-option" style="background-color: #800080;" data-color="#800080"></div>
+                        <div class="color-option" style="background-color: #FFA500;" data-color="#FFA500"></div>
+                    </div>
+                    
+                    <h4 style="margin-top: 15px;">Primary Color</h4>
+                    <input type="color" id="primaryColor" value="#FF0000">
+                    
+                    <h4>Secondary Color</h4>
+                    <input type="color" id="secondaryColor" value="#FFFFFF">
+                    
+                    <h4>Tertiary Color</h4>
+                    <input type="color" id="tertiaryColor" value="#0000FF">
+                </div>
+                
+                <div class="control-group">
+                    <h3>Symbol (Optional)</h3>
+                    <select id="symbolSelect">
+                        <option value="none">None</option>
+                        <option value="star">Star</option>
+                        <option value="moon">Crescent Moon</option>
+                        <option value="cross">Cross</option>
+                        <option value="sun">Sun</option>
+                        <option value="eagle">Eagle</option>
+                        <option value="lion">Lion</option>
+                    </select>
+                    
+                    <h4 style="margin-top: 15px;">Symbol Color</h4>
+                    <input type="color" id="symbolColor" value="#FFD700">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const flagCanvas = document.getElementById('flagCanvas');
+            const layoutSelect = document.getElementById('layoutSelect');
+            const primaryColor = document.getElementById('primaryColor');
+            const secondaryColor = document.getElementById('secondaryColor');
+            const tertiaryColor = document.getElementById('tertiaryColor');
+            const symbolSelect = document.getElementById('symbolSelect');
+            const symbolColor = document.getElementById('symbolColor');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const colorOptions = document.querySelectorAll('.color-option');
+            
+            let currentPrimaryColor = primaryColor.value;
+            let currentSecondaryColor = secondaryColor.value;
+            let currentTertiaryColor = tertiaryColor.value;
+            let currentSymbol = 'none';
+            let currentSymbolColor = symbolColor.value;
+            
+            // Initialize flag
+            updateFlag();
+            
+            // Event listeners
+            layoutSelect.addEventListener('change', updateFlag);
+            symbolSelect.addEventListener('change', updateFlag);
+            
+            primaryColor.addEventListener('input', function() {
+                currentPrimaryColor = this.value;
+                updateFlag();
+            });
+            
+            secondaryColor.addEventListener('input', function() {
+                currentSecondaryColor = this.value;
+                updateFlag();
+            });
+            
+            tertiaryColor.addEventListener('input', function() {
+                currentTertiaryColor = this.value;
+                updateFlag();
+            });
+            
+            symbolColor.addEventListener('input', function() {
+                currentSymbolColor = this.value;
+                updateFlag();
+            });
+            
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    colorOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                    
+                    // Assign color to the next available color picker
+                    if (primaryColor.value === currentPrimaryColor) {
+                        primaryColor.value = this.dataset.color;
+                        currentPrimaryColor = primaryColor.value;
+                    } else if (secondaryColor.value === currentSecondaryColor) {
+                        secondaryColor.value = this.dataset.color;
+                        currentSecondaryColor = secondaryColor.value;
+                    } else {
+                        tertiaryColor.value = this.dataset.color;
+                        currentTertiaryColor = tertiaryColor.value;
+                    }
+                    
+                    updateFlag();
+                });
+            });
+            
+            downloadBtn.addEventListener('click', function() {
+                html2canvas(flagCanvas).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'custom-flag.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            });
+            
+            function updateFlag() {
+                currentSymbol = symbolSelect.value;
+                flagCanvas.innerHTML = '';
+                flagCanvas.style.background = currentPrimaryColor;
+                
+                const layout = layoutSelect.value;
+                
+                switch(layout) {
+                    case 'horizontal':
+                        createHorizontalFlag();
+                        break;
+                    case 'vertical':
+                        createVerticalFlag();
+                        break;
+                    case 'diagonal':
+                        createDiagonalFlag();
+                        break;
+                    case 'quarter':
+                        createQuarteredFlag();
+                        break;
+                    case 'circle':
+                        createCircleFlag();
+                        break;
+                    case 'triangle':
+                        createTriangleFlag();
+                        break;
+                }
+                
+                if (currentSymbol !== 'none') {
+                    addSymbol();
+                }
+            }
+            
+            function createHorizontalFlag() {
+                const stripe1 = document.createElement('div');
+                stripe1.style.position = 'absolute';
+                stripe1.style.top = '0';
+                stripe1.style.left = '0';
+                stripe1.style.width = '100%';
+                stripe1.style.height = '33.33%';
+                stripe1.style.backgroundColor = currentPrimaryColor;
+                
+                const stripe2 = document.createElement('div');
+                stripe2.style.position = 'absolute';
+                stripe2.style.top = '33.33%';
+                stripe2.style.left = '0';
+                stripe2.style.width = '100%';
+                stripe2.style.height = '33.33%';
+                stripe2.style.backgroundColor = currentSecondaryColor;
+                
+                const stripe3 = document.createElement('div');
+                stripe3.style.position = 'absolute';
+                stripe3.style.top = '66.66%';
+                stripe3.style.left = '0';
+                stripe3.style.width = '100%';
+                stripe3.style.height = '33.33%';
+                stripe3.style.backgroundColor = currentTertiaryColor;
+                
+                flagCanvas.appendChild(stripe1);
+                flagCanvas.appendChild(stripe2);
+                flagCanvas.appendChild(stripe3);
+            }
+            
+            function createVerticalFlag() {
+                const stripe1 = document.createElement('div');
+                stripe1.style.position = 'absolute';
+                stripe1.style.top = '0';
+                stripe1.style.left = '0';
+                stripe1.style.width = '33.33%';
+                stripe1.style.height = '100%';
+                stripe1.style.backgroundColor = currentPrimaryColor;
+                
+                const stripe2 = document.createElement('div');
+                stripe2.style.position = 'absolute';
+                stripe2.style.top = '0';
+                stripe2.style.left = '33.33%';
+                stripe2.style.width = '33.33%';
+                stripe2.style.height = '100%';
+                stripe2.style.backgroundColor = currentSecondaryColor;
+                
+                const stripe3 = document.createElement('div');
+                stripe3.style.position = 'absolute';
+                stripe3.style.top = '0';
+                stripe3.style.left = '66.66%';
+                stripe3.style.width = '33.33%';
+                stripe3.style.height = '100%';
+                stripe3.style.backgroundColor = currentTertiaryColor;
+                
+                flagCanvas.appendChild(stripe1);
+                flagCanvas.appendChild(stripe2);
+                flagCanvas.appendChild(stripe3);
+            }
+            
+            function createDiagonalFlag() {
+                flagCanvas.style.background = currentSecondaryColor;
+                
+                const diagonal = document.createElement('div');
+                diagonal.style.position = 'absolute';
+                diagonal.style.top = '0';
+                diagonal.style.left = '0';
+                diagonal.style.width = '100%';
+                diagonal.style.height = '100%';
+                diagonal.style.background = `linear-gradient(to bottom right, ${currentPrimaryColor} 0%, ${currentPrimaryColor} 25%, transparent 25%, transparent 75%, ${currentTertiaryColor} 75%, ${currentTertiaryColor} 100%)`;
+                
+                flagCanvas.appendChild(diagonal);
+            }
+            
+            function createQuarteredFlag() {
+                flagCanvas.style.background = currentSecondaryColor;
+                
+                const quadrant1 = document.createElement('div');
+                quadrant1.style.position = 'absolute';
+                quadrant1.style.top = '0';
+                quadrant1.style.left = '0';
+                quadrant1.style.width = '50%';
+                quadrant1.style.height = '50%';
+                quadrant1.style.backgroundColor = currentPrimaryColor;
+                
+                const quadrant2 = document.createElement('div');
+                quadrant2.style.position = 'absolute';
+                quadrant2.style.top = '0';
+                quadrant2.style.left = '50%';
+                quadrant2.style.width = '50%';
+                quadrant2.style.height = '50%';
+                quadrant2.style.backgroundColor = currentTertiaryColor;
+                
+                const quadrant3 = document.createElement('div');
+                quadrant3.style.position = 'absolute';
+                quadrant3.style.top = '50%';
+                quadrant3.style.left = '0';
+                quadrant3.style.width = '50%';
+                quadrant3.style.height = '50%';
+                quadrant3.style.backgroundColor = currentTertiaryColor;
+                
+                const quadrant4 = document.createElement('div');
+                quadrant4.style.position = 'absolute';
+                quadrant4.style.top = '50%';
+                quadrant4.style.left = '50%';
+                quadrant4.style.width = '50%';
+                quadrant4.style.height = '50%';
+                quadrant4.style.backgroundColor = currentPrimaryColor;
+                
+                flagCanvas.appendChild(quadrant1);
+                flagCanvas.appendChild(quadrant2);
+                flagCanvas.appendChild(quadrant3);
+                flagCanvas.appendChild(quadrant4);
+            }
+            
+            function createCircleFlag() {
+                flagCanvas.style.background = currentSecondaryColor;
+                
+                const circle = document.createElement('div');
+                circle.style.position = 'absolute';
+                circle.style.top = '50%';
+                circle.style.left = '50%';
+                circle.style.width = '40%';
+                circle.style.height = '40%';
+                circle.style.backgroundColor = currentPrimaryColor;
+                circle.style.borderRadius = '50%';
+                circle.style.transform = 'translate(-50%, -50%)';
+                
+                flagCanvas.appendChild(circle);
+            }
+            
+            function createTriangleFlag() {
+                flagCanvas.style.background = currentSecondaryColor;
+                
+                const triangle = document.createElement('div');
+                triangle.style.position = 'absolute';
+                triangle.style.bottom = '0';
+                triangle.style.left = '0';
+                triangle.style.width = '0';
+                triangle.style.height = '0';
+                triangle.style.borderLeft = '50% solid transparent';
+                triangle.style.borderRight = '50% solid transparent';
+                triangle.style.borderBottom = `100% solid ${currentPrimaryColor}`;
+                triangle.style.transform = 'scaleX(0.5)';
+                
+                flagCanvas.appendChild(triangle);
+            }
+            
+            function addSymbol() {
+                const symbolContainer = document.createElement('div');
+                symbolContainer.style.position = 'absolute';
+                symbolContainer.style.top = '50%';
+                symbolContainer.style.left = '50%';
+                symbolContainer.style.transform = 'translate(-50%, -50%)';
+                symbolContainer.style.color = currentSymbolColor;
+                symbolContainer.style.fontSize = '100px';
+                symbolContainer.style.textAlign = 'center';
+                symbolContainer.style.width = '30%';
+                symbolContainer.style.height = '30%';
+                symbolContainer.style.display = 'flex';
+                symbolContainer.style.alignItems = 'center';
+                symbolContainer.style.justifyContent = 'center';
+                
+                const symbol = document.createElement('div');
+                
+                switch(currentSymbol) {
+                    case 'star':
+                        symbol.innerHTML = '★';
+                        break;
+                    case 'moon':
+                        symbol.innerHTML = '☪';
+                        break;
+                    case 'cross':
+                        symbol.innerHTML = '✝';
+                        break;
+                    case 'sun':
+                        symbol.innerHTML = '☀';
+                        break;
+                    case 'eagle':
+                        symbol.innerHTML = '🦅';
+                        break;
+                    case 'lion':
+                        symbol.innerHTML = '🦁';
+                        break;
+                }
+                
+                symbol.style.fontSize = 'min(20vw, 150px)';
+                
+                symbolContainer.appendChild(symbol);
+                flagCanvas.appendChild(symbolContainer);
+            }
+        });
+    </script>
+</body>
+</html>
+
